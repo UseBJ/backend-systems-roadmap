@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Backend/Systems Engineer Roadmap</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg:#0a0e14;
+    --surface:#10161f;
+    --surface-hi:#161d29;
+    --border:#222b38;
+    --border-hi:#30404f;
+    --text:#c5cedb;
+    --text-dim:#677489;
+    --text-bright:#eef2f7;
+    --green:#7ee787;
+    --green-dim:#3a6b44;
+    --amber:#e3b341;
+    --blue:#58a6ff;
+    --magenta:#d2a8ff;
+    --red:#f47067;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  body{
+    background:
+      radial-gradient(circle at 15% 0%, rgba(88,166,255,0.06), transparent 40%),
+      radial-gradient(circle at 85% 20%, rgba(126,231,135,0.05), transparent 45%),
+      var(--bg);
+    color:var(--text);
+    font-family:'IBM Plex Mono', monospace;
+    line-height:1.5;
+    padding:32px 18px 80px;
+    min-height:100vh;
+  }
+
+  .wrap{ max-width:880px; margin:0 auto; }
+
+  /* ---------- HEADER / TERMINAL ---------- */
+  .term{
+    background:var(--surface);
+    border:1px solid var(--border-hi);
+    border-radius:8px;
+    overflow:hidden;
+    box-shadow:0 20px 60px -20px rgba(0,0,0,0.6);
+  }
+  .term-bar{
+    display:flex; align-items:center; gap:8px;
+    padding:10px 14px;
+    background:var(--surface-hi);
+    border-bottom:1px solid var(--border);
+  }
+  .dot{ width:11px; height:11px; border-radius:50%; }
+  .dot.r{background:#f47067;} .dot.y{background:#e3b341;} .dot.g{background:#7ee787;}
+  .term-title{
+    margin-left:8px; font-size:12px; color:var(--text-dim); letter-spacing:.5px;
+  }
+  .term-body{ padding:26px 28px 28px; }
+
+  .prompt{ color:var(--green); }
+  .term-h1{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:800;
+    font-size:clamp(22px, 4vw, 32px);
+    color:var(--text-bright);
+    letter-spacing:-0.5px;
+    margin-top:6px;
+  }
+  .term-sub{
+    color:var(--text-dim);
+    font-size:13.5px;
+    margin-top:10px;
+    max-width:640px;
+  }
+
+  .stack-row{
+    display:flex; flex-wrap:wrap; gap:8px;
+    margin-top:18px;
+  }
+  .chip{
+    font-size:11.5px;
+    padding:5px 10px;
+    border:1px solid var(--border-hi);
+    border-radius:5px;
+    color:var(--text-dim);
+    background:var(--bg);
+  }
+  .chip b{ color:var(--blue); font-weight:600; }
+
+  /* ---------- PROGRESS ---------- */
+  .progress-block{ margin-top:22px; }
+  .progress-line{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-size:12px; color:var(--text-dim); margin-bottom:8px;
+  }
+  #pct{ color:var(--green); font-weight:600; }
+  .bar-track{
+    height:8px; background:var(--bg); border:1px solid var(--border-hi);
+    border-radius:4px; overflow:hidden; position:relative;
+  }
+  .bar-fill{
+    height:100%;
+    background:linear-gradient(90deg, var(--green-dim), var(--green));
+    width:0%;
+    transition:width .4s ease;
+  }
+
+  /* ---------- PIPELINE ---------- */
+  .pipeline{
+    position:relative;
+    margin-top:40px;
+    padding-left:28px;
+  }
+  .pipeline::before{
+    content:"";
+    position:absolute; left:9px; top:6px; bottom:6px; width:2px;
+    background:linear-gradient(var(--border-hi), var(--border));
+  }
+
+  .phase{
+    position:relative;
+    margin-bottom:18px;
+  }
+  .phase-node{
+    position:absolute; left:-28px; top:2px;
+    width:20px; height:20px; border-radius:50%;
+    background:var(--bg);
+    border:2px solid var(--border-hi);
+    display:flex; align-items:center; justify-content:center;
+    font-size:10px; font-weight:700; color:var(--text-dim);
+    transition:all .25s ease;
+    z-index:1;
+  }
+  .phase.complete .phase-node{
+    background:var(--green); border-color:var(--green); color:#06250c;
+  }
+  .phase.active .phase-node{
+    border-color:var(--amber); color:var(--amber);
+    box-shadow:0 0 0 4px rgba(227,179,65,0.12);
+  }
+
+  .phase-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:8px;
+    overflow:hidden;
+    transition:border-color .2s ease;
+  }
+  .phase.active .phase-card{ border-color:rgba(227,179,65,0.35); }
+  .phase.complete .phase-card{ border-color:rgba(126,231,135,0.3); }
+
+  .phase-head{
+    display:flex; align-items:center; gap:14px;
+    padding:16px 18px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .phase-tag{
+    font-size:10.5px; color:var(--text-dim); letter-spacing:1px;
+  }
+  .track-badge{
+    display:inline-block;
+    font-size:9px;
+    letter-spacing:.5px;
+    font-weight:600;
+    padding:2px 6px;
+    border-radius:3px;
+    margin-left:8px;
+    vertical-align:middle;
+  }
+  .track-badge.foundation{ color:var(--blue); border:1px solid var(--blue); }
+  .track-badge.income{ color:var(--green); border:1px solid var(--green); }
+  .track-badge.ceiling{ color:var(--magenta); border:1px solid var(--magenta); }
+  .phase-name{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700;
+    font-size:16px;
+    color:var(--text-bright);
+    margin-top:2px;
+  }
+  .phase-src{
+    font-size:11.5px; color:var(--blue); margin-top:3px;
+  }
+  .phase-meta{
+    margin-left:auto;
+    display:flex; align-items:center; gap:14px;
+    flex-shrink:0;
+  }
+  .phase-count{
+    font-size:12px; color:var(--text-dim);
+    background:var(--bg);
+    border:1px solid var(--border-hi);
+    padding:3px 9px;
+    border-radius:20px;
+    white-space:nowrap;
+  }
+  .phase-count.done{ color:var(--green); border-color:var(--green-dim); }
+  .chevron{
+    color:var(--text-dim);
+    transition:transform .25s ease;
+    font-size:13px;
+  }
+  .phase.open .chevron{ transform:rotate(90deg); }
+
+  .phase-body{
+    max-height:0;
+    overflow:hidden;
+    transition:max-height .35s ease;
+  }
+  .phase.open .phase-body{ max-height:2400px; }
+
+  .phase-inner{
+    padding:0 18px 20px;
+    border-top:1px solid var(--border);
+  }
+  .focus-block{
+    margin-top:16px;
+    font-size:13px;
+    color:var(--text-dim);
+    line-height:1.6;
+  }
+  .focus-block b{ color:var(--text); font-weight:600;}
+
+  .ckpt-label{
+    font-size:11px; color:var(--text-dim); letter-spacing:1px;
+    margin-top:18px; margin-bottom:8px;
+  }
+
+  .ckpt{
+    display:flex; align-items:flex-start; gap:10px;
+    padding:9px 10px;
+    border-radius:6px;
+    cursor:pointer;
+  }
+  .ckpt:hover{ background:var(--surface-hi); }
+  .box{
+    flex-shrink:0;
+    width:16px; height:16px;
+    border:1.5px solid var(--border-hi);
+    border-radius:4px;
+    margin-top:2px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; color:var(--green);
+    transition:all .15s ease;
+  }
+  .ckpt.done .box{ background:var(--green); border-color:var(--green); color:#06250c; }
+  .ckpt-text{ font-size:13.5px; color:var(--text); }
+  .ckpt.done .ckpt-text{ color:var(--text-dim); text-decoration:line-through; text-decoration-color:var(--border-hi); }
+  .ckpt-sub{ display:block; font-size:11.5px; color:var(--text-dim); margin-top:2px; }
+  .ckpt.done .ckpt-sub{ text-decoration:none; }
+
+  .hw-note{
+    margin-top:16px;
+    font-size:12px;
+    padding:10px 12px;
+    border-left:2px solid var(--magenta);
+    background:rgba(210,168,255,0.05);
+    color:var(--text-dim);
+    border-radius:0 6px 6px 0;
+  }
+  .hw-note b{ color:var(--magenta); }
+
+  .ckpt.capstone{
+    border:1px solid var(--border-hi);
+    margin-top:4px;
+  }
+  .ckpt.capstone .box{ border-color:var(--amber); }
+  .ckpt.capstone.done .box{ background:var(--amber); border-color:var(--amber); color:#2b1d02; }
+  .cap-badge{
+    display:inline-block;
+    font-size:9.5px;
+    letter-spacing:.5px;
+    color:var(--amber);
+    border:1px solid var(--amber);
+    border-radius:3px;
+    padding:1px 5px;
+    margin-left:7px;
+    vertical-align:middle;
+    transform:translateY(-1px);
+  }
+
+  /* ---------- ROLE SPLIT PANEL ---------- */
+  .role-panel{
+    margin-top:18px;
+    background:var(--bg);
+    border:1px solid var(--border-hi);
+    border-radius:8px;
+    padding:16px 18px;
+  }
+  .role-panel-title{
+    font-size:11px; color:var(--text-dim); letter-spacing:1px; margin-bottom:12px;
+  }
+  .role-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  @media (max-width:560px){ .role-grid{ grid-template-columns:1fr; } }
+  .role-col{
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:12px 14px;
+  }
+  .role-col.mac{ border-left:2px solid var(--blue); }
+  .role-col.bmax{ border-left:2px solid var(--green); }
+  .role-col-h{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700;
+    font-size:13px;
+    color:var(--text-bright);
+    margin-bottom:6px;
+  }
+  .role-col.mac .role-col-h{ color:var(--blue); }
+  .role-col.bmax .role-col-h{ color:var(--green); }
+  .role-col ul{ list-style:none; padding:0; margin:0; }
+  .role-col li{
+    font-size:12px; color:var(--text-dim);
+    padding-left:14px; position:relative; margin-top:5px;
+  }
+  .role-col li::before{
+    content:"›"; position:absolute; left:0; color:var(--text-dim);
+  }
+
+  /* ---------- RESET CONTROL ---------- */
+  .reset-row{
+    display:flex; justify-content:flex-end; gap:8px;
+    margin-top:10px;
+    flex-wrap:wrap;
+  }
+  .reset-btn{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    color:var(--text-dim);
+    background:transparent;
+    border:1px solid var(--border-hi);
+    border-radius:5px;
+    padding:6px 11px;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .reset-btn:hover{ color:var(--red); border-color:var(--red); }
+  .reset-btn.confirm{ color:var(--red); border-color:var(--red); }
+
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--surface-hi);
+    border:1px solid var(--border-hi);
+    color:var(--text-bright);
+    font-size:12.5px;
+    padding:10px 16px;
+    border-radius:7px;
+    opacity:0;
+    pointer-events:none;
+    transition:all .25s ease;
+    z-index:50;
+    box-shadow:0 10px 30px -10px rgba(0,0,0,0.6);
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  .toast.ok{ border-color:var(--green-dim); }
+  .toast.err{ border-color:var(--red); }
+
+
+  /* ---------- FOOTER ---------- */
+  .footer-term{
+    margin-top:28px;
+    font-size:12px;
+    color:var(--text-dim);
+    text-align:center;
+  }
+  .footer-term .prompt{ margin-right:4px; }
+
+  ::-webkit-scrollbar{ width:0; height:0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="term">
+    <div class="term-bar">
+      <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+      <div class="term-title">ghostty — roadmap.sh — 88×24</div>
+    </div>
+    <div class="term-body">
+      <div><span class="prompt">$</span> cat /etc/roadmap/mission.txt</div>
+      <div class="term-h1">Backend &amp; Systems Engineer Track</div>
+      <div class="term-sub">
+        Foundations → tooling → systems programming, then two tracks run in parallel: shipping paid work fast,
+        and building the algorithmic depth that raises your ceiling long-term.
+      </div>
+
+      <div class="stack-row">
+        <span class="chip"><b>Lang:</b> Python → Go</span>
+        <span class="chip"><b>Ops:</b> Docker · CI/CD</span>
+        <span class="chip"><b>Rig:</b> MacBook Neo · A18 · 512GB</span>
+        <span class="chip"><b>Server:</b> BMAX B4 Ultra · Intel N150 · 16GB RAM · Ubuntu 24.04</span>
+        <span class="chip"><b>Shell:</b> Ghostty + NeoVim</span>
+        <span class="chip"><b>ML:</b> Local inference (Apple Silicon)</span>
+        <span class="chip"><b>Cloud AI:</b> Gemini Pro · Antigravity CLI</span>
+        <span class="chip"><b>Backup:</b> iCloud+ 50GB</span>
+      </div>
+
+      <div class="progress-block">
+        <div class="progress-line">
+          <span><span class="prompt">$</span> ./roadmap.sh --status</span>
+          <span><span id="pct">0%</span> complete · <span id="frac">0/0 checkpoints</span></span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" id="barFill"></div></div>
+        <div class="reset-row">
+          <input type="file" id="importInput" accept=".json" style="display:none">
+          <button class="reset-btn" id="importBtn">⇩ import progress</button>
+          <button class="reset-btn" id="exportBtn">⇧ export progress (⌘S)</button>
+          <button class="reset-btn" id="resetBtn">⟲ reset progress</button>
+        </div>
+      </div>
+
+      <div class="role-panel">
+        <div class="role-panel-title">$ cat /etc/roadmap/machine-roles.txt</div>
+        <div class="role-grid">
+          <div class="role-col mac">
+            <div class="role-col-h">MacBook Neo · A18</div>
+            <ul>
+              <li>Primary dev machine — Ghostty + NeoVim</li>
+              <li>Compiles/tests Python &amp; Go locally</li>
+              <li>Runs local ML inference (Ollama, ONNX)</li>
+              <li>SSH client into the BMAX server</li>
+            </ul>
+          </div>
+          <div class="role-col bmax">
+            <div class="role-col-h">BMAX B4 Ultra · N150</div>
+            <ul>
+              <li>Always-on deployment target</li>
+              <li>Hosts services: Go binaries, Postgres/Redis</li>
+              <li>SSH server — key-based auth only</li>
+              <li>Resource-constrained: forces efficient code</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pipeline" id="pipeline"></div>
+
+  <div class="footer-term">
+    <span class="prompt">$</span> progress auto-saves to this browser on this device — export a backup so you never lose it.
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+</div>
+
+<script>
+const DATA = [
+  {
+    tag: "STAGE 01 · WEEKS 1–5",
+    track: "foundation",
+    name: "The Foundation",
+    src: "MIT 6.100L — Introduction to CS & Programming Using Python",
+    icon: "1",
+    focus: "Core computational thinking using Python — building the mental model every later phase (including Go) will lean on.",
+    hw: "Use this phase to get your daily-driver environment functional early: write and run every assignment through NeoVim + Ghostty on the MacBook Neo, not a notebook GUI. The friction now pays off in Stage 02.",
+    checkpoints: [
+      ["Control flow & iteration", "for/while loops, recursion basics, branching logic — solve all problem sets without referencing solutions first"],
+      ["Data structures in Python", "lists, tuples, dicts, sets — know Big-O of common operations intuitively, not just by memorization"],
+      ["Structuring functions", "decomposition, pure functions, scope, default/keyword args, *args/**kwargs"],
+      ["Object-oriented design", "classes, inheritance, dunder methods, composition vs. inheritance tradeoffs"],
+      ["Debugging discipline", "comfortable reading tracebacks, using pdb, and writing assert-based sanity checks"],
+      ["Capstone: small CLI tool", "build a self-contained Python CLI (e.g. a file organizer or log parser) run entirely from Ghostty"]
+    ]
+  },
+  {
+    tag: "STAGE 02 · WEEKS 6–9",
+    track: "foundation",
+    name: "The Workshop",
+    src: "MIT 'The Missing Semester of Your CS Education'",
+    icon: "2",
+    focus: "Environment mastery — the tooling layer that makes everything after this faster. This phase is where your specific hardware setup gets fully wired together.",
+    hw: "Treat the Ubuntu 24.04 home server as a real remote target throughout — every SSH and shell exercise should be run against it, not localhost. This is your first taste of the client/server split you'll formalize later.",
+    checkpoints: [
+      ["Shell fundamentals", "pipes, redirection, globbing, job control, shell scripting (bash/zsh)"],
+      ["Git version control", "branching strategy, rebasing vs. merging, bisect, reflog recovery, resolving real conflicts"],
+      ["SSH networking", "key-based auth and secure key config for the BMAX B4 Ultra mini-server, plus config aliases and port forwarding/tunneling into it"],
+      ["NeoVim proficiency", "modal editing fluency, a minimal but intentional config (LSP, fuzzy finder, no GUI crutches)"],
+      ["Ghostty workflow tuning", "tmux or native multiplexing, custom keybinds, theme/font tuned for long sessions"],
+      ["Dotfiles & reproducibility", "version-controlled dotfiles repo that can bootstrap a fresh machine or server in minutes"],
+      ["Capstone: remote dev loop", "edit on the MacBook Neo, sync/run/test on the Ubuntu server entirely via SSH + NeoVim, no GUI file transfer"]
+    ]
+  },
+  {
+    tag: "STAGE 03 · WEEKS 10–15",
+    track: "foundation",
+    name: "The Syntax Bridge",
+    src: "A Tour of Go (+ Effective Go as reference)",
+    icon: "3",
+    focus: "Transitioning from dynamic scripting to systems programming. The goal isn't 'learn Go syntax' — it's rewiring instincts from dynamic typing to static, value-oriented thinking.",
+    hw: "For every concept, port one small Python program from Stage 01 into Go. The translation exercise — not new toy projects — is what actually rewires the instinct.",
+    checkpoints: [
+      ["Static typing mindset", "type inference, explicit conversions, why Go refuses implicit coercion"],
+      ["Structs & methods", "value vs. pointer receivers, embedding instead of inheritance"],
+      ["Pointers", "when to use them, escape analysis basics, avoiding nil-pointer foot-guns"],
+      ["Interfaces", "implicit satisfaction, small-interface idioms (io.Reader/Writer style thinking)"],
+      ["Error handling", "explicit error returns vs. Python exceptions, wrapping/unwrapping errors"],
+      ["Goroutines & channels", "basic concurrency: launching goroutines, channel communication, select statements"],
+      ["Tooling", "go mod, go fmt, go vet, go test — build the same muscle memory pip/venv gave you"],
+      ["Capstone: port a Stage-01 project", "rewrite your Python CLI tool in Go; compile a static binary and run it on the Ubuntu server"]
+    ]
+  },
+  {
+    tag: "STAGE 04 · WEEKS 13–22 (overlaps Stage 03)",
+    track: "income",
+    name: "Ship & Earn",
+    src: "Applied: deployment, real projects, first paying work",
+    icon: "$",
+    focus: "This is the income-shortening phase. Start it while Stage 03 is still wrapping up — don't wait for 'ready.' The goal is one deployed, real-world project and your first paid work, not more theory.",
+    hw: "Run everything here on the BMAX server as a live, reachable service — this is the deployment target your future clients' work will mirror. Use the MacBook Neo purely as the dev/build machine.",
+    checkpoints: [
+      ["REST API from scratch", "build a real API (Python or Go) with a database (Postgres/SQLite), not a tutorial clone"],
+      ["Auth & security basics", "password hashing, JWT or session auth, environment-based secrets — the things clients actually check"],
+      ["Containerization", "Dockerize the project; understand images vs. containers, volumes, basic docker-compose"],
+      ["Deployment", "deploy the containerized service on the BMAX server, reachable over your network (and optionally a domain/reverse proxy via Caddy or Nginx)"],
+      ["Basic CI", "a simple GitHub Actions pipeline that tests and builds on every push"],
+      ["Portfolio presence", "a clean GitHub profile, 1–2 polished repos with real READMEs, and a one-page site or profile describing what you build"],
+      ["Freelance positioning", "profile live on at least one platform (Upwork/Toptal/Contra) or a cold-outreach list of 10 target clients/companies"],
+      ["Capstone: first paid or portfolio-grade project", "ship something a real person uses or pays for — even small. This is the artifact that gets you hired or hired again."]
+    ]
+  },
+  {
+    tag: "STAGE 05 · WEEKS 16–40+ (runs alongside Stage 04 income work)",
+    track: "ceiling",
+    name: "Theory Meets Execution & Applied Systems",
+    src: "MIT 6.006 (Algorithms) + 'Algorithms in Go'",
+    icon: "5",
+    focus: "This is the ceiling-raising phase — what gets you from 'employable' to 'highly required.' It runs in parallel with Stage 04, not after it: keep earning while you build the depth that wins high-tier interviews.",
+    hw: "Apple Silicon checkpoint: once Hash Tables and Graphs are solid, branch into running local inference (Ollama, or custom Go/Python bindings via CGo or ONNX runtime) on the A18 chip — treat it as systems work, not a side quest. Profile memory and latency the same way you profile your Go data structures. Then run the same prediction task through the Gemini API (or Antigravity CLI) and compare local vs. cloud latency, cost, and quality — a real-world local/distributed tradeoff exercise.",
+    checkpoints: [
+      ["Asymptotic analysis", "Big O / Θ / Ω rigor — prove bounds, not just estimate them"],
+      ["Hash tables", "open addressing vs. chaining, implement one from scratch in Go with benchmarks"],
+      ["Trees & B-Trees", "balanced trees, B-Tree node splitting/merging — relate to real DB index structures"],
+      ["Graphs", "BFS/DFS, shortest paths (Dijkstra, Bellman-Ford), implement in Go with adjacency-list memory tuning"],
+      ["Sorting & selection", "comparison-based bounds, when to reach for non-comparison sorts"],
+      ["Dynamic programming", "memoization vs. tabulation, classic problems solved in both Python and Go"],
+      ["Distributed systems basics", "consistency models, consensus intuition, designing a simple replicated service"],
+      ["Apple Silicon ML checkpoint", "run a local LLM via Ollama on the A18; or wire a Go service to call a Python inference process via gRPC/sockets — then benchmark against the Gemini API for a local-vs-cloud comparison"],
+      ["System design interview prep", "practice designing real systems on a whiteboard/doc — URL shortener, rate limiter, chat backend — explaining tradeoffs out loud"],
+      ["Capstone: systems project", "a Go service (REST/gRPC) backed by a hand-built data structure, deployed and load-tested on the Ubuntu 24.04 server"]
+    ]
+  }
+];
+
+const pipeline = document.getElementById('pipeline');
+const STORAGE_KEY = 'roadmap_progress_v1';
+const OPEN_KEY = 'roadmap_open_v1';
+
+let state = DATA.map(p => p.checkpoints.map(() => false));
+let openState = DATA.map((_, i) => i === 0);
+
+function loadState(){
+  try{
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if(saved){
+      const parsed = JSON.parse(saved);
+      if(Array.isArray(parsed) && parsed.length === DATA.length){
+        state = parsed;
+      }
+    }
+    const savedOpen = localStorage.getItem(OPEN_KEY);
+    if(savedOpen){
+      const parsedOpen = JSON.parse(savedOpen);
+      if(Array.isArray(parsedOpen) && parsedOpen.length === DATA.length){
+        openState = parsedOpen;
+      }
+    }
+  }catch(e){
+    console.warn('Could not load saved progress:', e);
+  }
+}
+
+function saveState(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(OPEN_KEY, JSON.stringify(openState));
+  }catch(e){
+    console.warn('Could not save progress:', e);
+  }
+}
+
+loadState();
+
+function render(){
+  pipeline.innerHTML = '';
+  DATA.forEach((phase, pi) => {
+    const total = phase.checkpoints.length;
+    const done = state[pi].filter(Boolean).length;
+    const isComplete = done === total;
+    const foundationDone = state[0].every(Boolean) && state[1].every(Boolean) && state[2].every(Boolean);
+    const isActive = !isComplete && (pi === 0 || (pi <= 2 && state[pi-1].every(Boolean)) || (pi >= 3 && foundationDone));
+
+    const el = document.createElement('div');
+    el.className = 'phase' + (isComplete ? ' complete' : '') + (isActive ? ' active' : '') + (openState[pi] ? ' open' : '');
+
+    el.innerHTML = `
+      <div class="phase-node">${isComplete ? '✓' : phase.icon}</div>
+      <div class="phase-card">
+        <div class="phase-head" data-idx="${pi}">
+          <div>
+            <div class="phase-tag">${phase.tag}<span class="track-badge ${phase.track}">${phase.track === 'income' ? 'INCOME TRACK' : phase.track === 'ceiling' ? 'CEILING TRACK' : 'FOUNDATION'}</span></div>
+            <div class="phase-name">${phase.name}</div>
+            <div class="phase-src">${phase.src}</div>
+          </div>
+          <div class="phase-meta">
+            <span class="phase-count ${isComplete ? 'done' : ''}">${done}/${total}</span>
+            <span class="chevron">▸</span>
+          </div>
+        </div>
+        <div class="phase-body">
+          <div class="phase-inner">
+            <div class="focus-block"><b>Focus —</b> ${phase.focus}</div>
+            <div class="ckpt-label">CHECKPOINTS</div>
+            ${phase.checkpoints.map((c, ci) => {
+              const isCap = c[0].startsWith('Capstone');
+              return `
+              <div class="ckpt ${state[pi][ci] ? 'done' : ''} ${isCap ? 'capstone' : ''}" data-pi="${pi}" data-ci="${ci}">
+                <div class="box">${state[pi][ci] ? '✓' : ''}</div>
+                <div class="ckpt-text">${c[0]}${isCap ? '<span class="cap-badge">PORTFOLIO</span>' : ''}<span class="ckpt-sub">${c[1]}</span></div>
+              </div>
+            `;}).join('')}
+            <div class="hw-note"><b>Hardware note —</b> ${phase.hw}</div>
+          </div>
+        </div>
+      </div>
+    `;
+    pipeline.appendChild(el);
+  });
+
+  pipeline.querySelectorAll('.phase-head').forEach(h => {
+    h.addEventListener('click', () => {
+      const idx = h.dataset.idx;
+      openState[idx] = !openState[idx];
+      saveState();
+      render();
+    });
+  });
+  pipeline.querySelectorAll('.ckpt').forEach(c => {
+    c.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const pi = c.dataset.pi, ci = c.dataset.ci;
+      state[pi][ci] = !state[pi][ci];
+      saveState();
+      render();
+      updateProgress();
+    });
+  });
+
+  updateProgress();
+}
+
+
+
+function updateProgress(){
+  const totalCk = state.flat().length;
+  const doneCk = state.flat().filter(Boolean).length;
+  const pct = totalCk ? Math.round((doneCk/totalCk)*100) : 0;
+  document.getElementById('pct').textContent = pct + '%';
+  document.getElementById('frac').textContent = `${doneCk}/${totalCk} checkpoints`;
+  document.getElementById('barFill').style.width = pct + '%';
+}
+
+render();
+
+const resetBtn = document.getElementById('resetBtn');
+let resetArmed = false;
+resetBtn.addEventListener('click', () => {
+  if(!resetArmed){
+    resetArmed = true;
+    resetBtn.textContent = 'click again to confirm';
+    resetBtn.classList.add('confirm');
+    setTimeout(() => {
+      resetArmed = false;
+      resetBtn.textContent = '⟲ reset progress';
+      resetBtn.classList.remove('confirm');
+    }, 3000);
+  } else {
+    state = DATA.map(p => p.checkpoints.map(() => false));
+    saveState();
+    resetArmed = false;
+    resetBtn.textContent = '⟲ reset progress';
+    resetBtn.classList.remove('confirm');
+    render();
+  }
+});
+
+function showToast(msg, kind){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + (kind || '');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => { t.className = 'toast ' + (kind || ''); }, 2800);
+}
+
+function exportProgress(){
+  try{
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      version: 1,
+      state: state,
+      openState: openState
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const stamp = new Date().toISOString().slice(0,10);
+    a.href = url;
+    a.download = `roadmap-progress-${stamp}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Progress exported ✓ (⌘S)', 'ok');
+  }catch(e){
+    showToast('Export failed — see console', 'err');
+    console.error(e);
+  }
+}
+
+document.getElementById('exportBtn').addEventListener('click', exportProgress);
+
+// Cmd+S (Mac) / Ctrl+S (Windows/Linux) triggers export instead of browser's save dialog
+document.addEventListener('keydown', (e) => {
+  const isSaveCombo = (e.metaKey || e.ctrlKey) && (e.key === 's' || e.key === 'S');
+  if(isSaveCombo){
+    e.preventDefault();
+    exportProgress();
+  }
+});
+
+const importInput = document.getElementById('importInput');
+document.getElementById('importBtn').addEventListener('click', () => {
+  importInput.value = '';
+  importInput.click();
+});
+importInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try{
+      const payload = JSON.parse(ev.target.result);
+      if(!payload.state || !Array.isArray(payload.state) || payload.state.length !== DATA.length){
+        showToast('That file doesn\'t match this roadmap\'s structure', 'err');
+        return;
+      }
+      const validShape = payload.state.every((arr, i) => Array.isArray(arr) && arr.length === DATA[i].checkpoints.length);
+      if(!validShape){
+        showToast('Checkpoint counts don\'t match — file may be from an older version', 'err');
+        return;
+      }
+      state = payload.state;
+      if(Array.isArray(payload.openState) && payload.openState.length === DATA.length){
+        openState = payload.openState;
+      }
+      saveState();
+      render();
+      showToast('Progress imported ✓', 'ok');
+    }catch(err){
+      showToast('Could not read that file — invalid JSON', 'err');
+      console.error(err);
+    }
+  };
+  reader.readAsText(file);
+});
+</script>
+</body>
+</html>
