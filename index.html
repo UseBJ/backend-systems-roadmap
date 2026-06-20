@@ -330,8 +330,31 @@
     margin-top:10px;
     flex-wrap:wrap;
   }
-  .reset-btn{
-    font-family:'IBM Plex Mono', monospace;
+  .sync-line{
+    display:flex; align-items:center; gap:7px;
+    font-size:11px; color:var(--text-dim);
+    margin-top:6px; margin-bottom:14px;
+  }
+  .link-btn{
+    background:none; border:none;
+    color:var(--blue); font-family:inherit; font-size:11px;
+    cursor:pointer; text-decoration:underline;
+    padding:0; margin-left:4px;
+  }
+  .link-btn:hover{ color:var(--text-bright); }
+  .sync-dot{
+    width:7px; height:7px; border-radius:50%;
+    background:var(--text-dim);
+    flex-shrink:0;
+    transition:background .2s ease, box-shadow .2s ease;
+  }
+  .sync-dot.file{ background:var(--green); box-shadow:0 0 6px rgba(126,231,135,0.5); }
+  .sync-dot.local{ background:var(--green); box-shadow:0 0 6px rgba(126,231,135,0.5); }
+  .sync-dot.err{ background:var(--red); box-shadow:0 0 6px rgba(244,112,103,0.5); }
+  .sync-dot.pending{ animation:pulse 1s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
+
+  .reset-btn{    font-family:'IBM Plex Mono', monospace;
     font-size:11.5px;
     color:var(--text-dim);
     background:transparent;
@@ -407,6 +430,10 @@
           <span><span class="prompt">$</span> ./roadmap.sh --status</span>
           <span><span id="pct">0%</span> complete · <span id="frac">0/0 checkpoints</span></span>
         </div>
+        <div class="sync-line" id="syncLine">
+          <span class="sync-dot" id="syncDot"></span>
+          <span id="syncLabel">checking sync…</span>
+        </div>
         <div class="bar-track"><div class="bar-fill" id="barFill"></div></div>
         <div class="reset-row">
           <input type="file" id="importInput" accept=".json" style="display:none">
@@ -445,7 +472,7 @@
   <div class="pipeline" id="pipeline"></div>
 
   <div class="footer-term">
-    <span class="prompt">$</span> progress auto-saves to this browser on this device — export a backup so you never lose it.
+    <span class="prompt">$</span> autosaves on this device — use export/import to carry progress to another device.
   </div>
 
   <div class="toast" id="toast"></div>
@@ -557,37 +584,48 @@ const OPEN_KEY = 'roadmap_open_v1';
 let state = DATA.map(p => p.checkpoints.map(() => false));
 let openState = DATA.map((_, i) => i === 0);
 
-function loadState(){
+// --- Persistence ---
+// Saved to this browser's localStorage only. To move progress between
+// devices/browsers, use the export/import buttons below (manual, but
+// private and works fully offline).
+function setSyncStatus(kind, label){
+  const dot = document.getElementById('syncDot');
+  const lbl = document.getElementById('syncLabel');
+  if(!dot || !lbl) return;
+  dot.className = 'sync-dot ' + kind;
+  lbl.textContent = label;
+}
+
+async function loadState(){
+  setSyncStatus('pending', 'loading…');
   try{
     const saved = localStorage.getItem(STORAGE_KEY);
     if(saved){
       const parsed = JSON.parse(saved);
-      if(Array.isArray(parsed) && parsed.length === DATA.length){
-        state = parsed;
-      }
+      if(Array.isArray(parsed) && parsed.length === DATA.length) state = parsed;
     }
     const savedOpen = localStorage.getItem(OPEN_KEY);
     if(savedOpen){
       const parsedOpen = JSON.parse(savedOpen);
-      if(Array.isArray(parsedOpen) && parsedOpen.length === DATA.length){
-        openState = parsedOpen;
-      }
+      if(Array.isArray(parsedOpen) && parsedOpen.length === DATA.length) openState = parsedOpen;
     }
+    setSyncStatus('local', 'saved on this device — use export/import to move between devices');
   }catch(e){
     console.warn('Could not load saved progress:', e);
+    setSyncStatus('err', 'could not load saved progress');
   }
 }
 
-function saveState(){
+async function saveState(){
   try{
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     localStorage.setItem(OPEN_KEY, JSON.stringify(openState));
+    setSyncStatus('local', 'saved on this device — use export/import to move between devices');
   }catch(e){
     console.warn('Could not save progress:', e);
+    setSyncStatus('err', 'save failed — storage may be full or blocked');
   }
 }
-
-loadState();
 
 function render(){
   pipeline.innerHTML = '';
@@ -668,7 +706,7 @@ function updateProgress(){
   document.getElementById('barFill').style.width = pct + '%';
 }
 
-render();
+loadState().then(render);
 
 const resetBtn = document.getElementById('resetBtn');
 let resetArmed = false;
