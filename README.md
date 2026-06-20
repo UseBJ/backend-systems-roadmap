@@ -1,5 +1,7 @@
 # Backend & Systems Engineer Roadmap
 
+![Roadmap Dashboard Preview](./assets/preview.png)
+
 A self-tracked learning dashboard for progressing from programming fundamentals to a
 professional backend/systems engineer, structured around a curated reading list
 (MIT 6.100L, MIT's Missing Semester, A Tour of Go, MIT 6.006) plus applied DevOps work.
